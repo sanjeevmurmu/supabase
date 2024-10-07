@@ -87,6 +87,12 @@
                     "postgres_version": {
                       "type": "string"
                     },
+                    "postgres_engine": {
+                      "type": "string"
+                    },
+                    "release_channel": {
+                      "type": "string"
+                    },
                     "status": {
                       "enum": [
                         "ACTIVE_HEALTHY",
@@ -123,6 +129,8 @@
                     "db_port",
                     "ref",
                     "postgres_version",
+                    "postgres_engine",
+                    "release_channel",
                     "status",
                     "db_host"
                   ]
@@ -423,11 +431,21 @@
                           "version": {
                             "type": "string",
                             "description": "Database version"
+                          },
+                          "postgres_engine": {
+                            "type": "string",
+                            "description": "Database engine"
+                          },
+                          "release_channel": {
+                            "type": "string",
+                            "description": "Release channel"
                           }
                         },
                         "required": [
                           "host",
-                          "version"
+                          "version",
+                          "postgres_engine",
+                          "release_channel"
                         ]
                       },
                       "status": {
@@ -555,6 +573,23 @@
                     "type": "string",
                     "description": "Template URL used to create the project from the CLI.",
                     "example": "https://github.com/supabase/supabase/tree/master/examples/slack-clone/nextjs-slack-clone"
+                  },
+                  "release_channel": {
+                    "type": "string",
+                    "enum": [
+                      "internal",
+                      "alpha",
+                      "beta",
+                      "ga",
+                      "withdrawn"
+                    ]
+                  },
+                  "postgres_engine": {
+                    "type": "string",
+                    "description": "Postgres engine version. If not provided, the latest version will be used.",
+                    "enum": [
+                      "15"
+                    ]
                   }
                 },
                 "required": [
@@ -607,11 +642,21 @@
                         "version": {
                           "type": "string",
                           "description": "Database version"
+                        },
+                        "postgres_engine": {
+                          "type": "string",
+                          "description": "Database engine"
+                        },
+                        "release_channel": {
+                          "type": "string",
+                          "description": "Release channel"
                         }
                       },
                       "required": [
                         "host",
-                        "version"
+                        "version",
+                        "postgres_engine",
+                        "release_channel"
                       ]
                     },
                     "status": {
@@ -1852,6 +1897,23 @@
                       "8xlarge",
                       "12xlarge",
                       "16xlarge"
+                    ]
+                  },
+                  "release_channel": {
+                    "type": "string",
+                    "enum": [
+                      "internal",
+                      "alpha",
+                      "beta",
+                      "ga",
+                      "withdrawn"
+                    ]
+                  },
+                  "postgres_engine": {
+                    "type": "string",
+                    "description": "Postgres engine version. If not provided, the latest version will be used.",
+                    "enum": [
+                      "15"
                     ]
                   },
                   "branch_name": {
@@ -4135,11 +4197,22 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "release_channel": {
+                    "type": "string",
+                    "enum": [
+                      "internal",
+                      "alpha",
+                      "beta",
+                      "ga",
+                      "withdrawn"
+                    ]
+                  },
                   "target_version": {
-                    "type": "number"
+                    "type": "string"
                   }
                 },
                 "required": [
+                  "release_channel",
                   "target_version"
                 ]
               }
@@ -4184,7 +4257,7 @@
     },
     "/v1/projects/{ref}/upgrade/eligibility": {
       "get": {
-        "operationId": "v1-get-postgrest-upgrade-eligibility",
+        "operationId": "v1-get-postgres-upgrade-eligibility",
         "summary": "[Beta] Returns the project's eligibility for upgrades",
         "parameters": [
           {
@@ -4207,6 +4280,16 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "current_app_version_release_channel": {
+                      "type": "string",
+                      "enum": [
+                        "internal",
+                        "alpha",
+                        "beta",
+                        "ga",
+                        "withdrawn"
+                      ]
+                    },
                     "eligible": {
                       "type": "boolean"
                     },
@@ -4222,7 +4305,21 @@
                         "type": "object",
                         "properties": {
                           "postgres_version": {
-                            "type": "number"
+                            "type": "string",
+                            "description": "Postgres engine version. If not provided, the latest version will be used.",
+                            "enum": [
+                              "15"
+                            ]
+                          },
+                          "release_channel": {
+                            "type": "string",
+                            "enum": [
+                              "internal",
+                              "alpha",
+                              "beta",
+                              "ga",
+                              "withdrawn"
+                            ]
                           },
                           "app_version": {
                             "type": "string"
@@ -4230,6 +4327,7 @@
                         },
                         "required": [
                           "postgres_version",
+                          "release_channel",
                           "app_version"
                         ]
                       }
@@ -4257,6 +4355,7 @@
                     }
                   },
                   "required": [
+                    "current_app_version_release_channel",
                     "eligible",
                     "current_app_version",
                     "latest_app_version",
@@ -4289,7 +4388,7 @@
     },
     "/v1/projects/{ref}/upgrade/status": {
       "get": {
-        "operationId": "v1-get-postgrest-upgrade-status",
+        "operationId": "v1-get-postgres-upgrade-status",
         "summary": "[Beta] Gets the latest status of the project's upgrade",
         "parameters": [
           {
@@ -4300,6 +4399,14 @@
             "schema": {
               "minLength": 20,
               "maxLength": 20,
+              "type": "string"
+            }
+          },
+          {
+            "name": "tracking_id",
+            "required": false,
+            "in": "query",
+            "schema": {
               "type": "string"
             }
           }
@@ -4800,10 +4907,10 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "statement_timeout": {
+                    "effective_cache_size": {
                       "type": "string"
                     },
-                    "effective_cache_size": {
+                    "logical_decoding_work_mem": {
                       "type": "string"
                     },
                     "maintenance_work_mem": {
@@ -4834,6 +4941,9 @@
                       "minimum": 0,
                       "maximum": 1024
                     },
+                    "max_replication_slots": {
+                      "type": "integer"
+                    },
                     "max_slot_wal_keep_size": {
                       "type": "string"
                     },
@@ -4846,6 +4956,9 @@
                     "max_wal_size": {
                       "type": "string"
                     },
+                    "max_wal_senders": {
+                      "type": "integer"
+                    },
                     "max_worker_processes": {
                       "type": "integer",
                       "minimum": 0,
@@ -4854,7 +4967,13 @@
                     "shared_buffers": {
                       "type": "string"
                     },
+                    "statement_timeout": {
+                      "type": "string"
+                    },
                     "wal_keep_size": {
+                      "type": "string"
+                    },
+                    "wal_sender_timeout": {
                       "type": "string"
                     },
                     "work_mem": {
@@ -4909,10 +5028,10 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "statement_timeout": {
+                  "effective_cache_size": {
                     "type": "string"
                   },
-                  "effective_cache_size": {
+                  "logical_decoding_work_mem": {
                     "type": "string"
                   },
                   "maintenance_work_mem": {
@@ -4943,6 +5062,9 @@
                     "minimum": 0,
                     "maximum": 1024
                   },
+                  "max_replication_slots": {
+                    "type": "integer"
+                  },
                   "max_slot_wal_keep_size": {
                     "type": "string"
                   },
@@ -4955,6 +5077,9 @@
                   "max_wal_size": {
                     "type": "string"
                   },
+                  "max_wal_senders": {
+                    "type": "integer"
+                  },
                   "max_worker_processes": {
                     "type": "integer",
                     "minimum": 0,
@@ -4963,7 +5088,13 @@
                   "shared_buffers": {
                     "type": "string"
                   },
+                  "statement_timeout": {
+                    "type": "string"
+                  },
                   "wal_keep_size": {
+                    "type": "string"
+                  },
+                  "wal_sender_timeout": {
                     "type": "string"
                   },
                   "work_mem": {
@@ -4990,10 +5121,10 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "statement_timeout": {
+                    "effective_cache_size": {
                       "type": "string"
                     },
-                    "effective_cache_size": {
+                    "logical_decoding_work_mem": {
                       "type": "string"
                     },
                     "maintenance_work_mem": {
@@ -5024,6 +5155,9 @@
                       "minimum": 0,
                       "maximum": 1024
                     },
+                    "max_replication_slots": {
+                      "type": "integer"
+                    },
                     "max_slot_wal_keep_size": {
                       "type": "string"
                     },
@@ -5036,6 +5170,9 @@
                     "max_wal_size": {
                       "type": "string"
                     },
+                    "max_wal_senders": {
+                      "type": "integer"
+                    },
                     "max_worker_processes": {
                       "type": "integer",
                       "minimum": 0,
@@ -5044,7 +5181,13 @@
                     "shared_buffers": {
                       "type": "string"
                     },
+                    "statement_timeout": {
+                      "type": "string"
+                    },
                     "wal_keep_size": {
+                      "type": "string"
+                    },
+                    "wal_sender_timeout": {
                       "type": "string"
                     },
                     "work_mem": {
@@ -10072,6 +10215,19 @@
                         ]
                       }
                     },
+                    "allowed_release_channels": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "internal",
+                          "alpha",
+                          "beta",
+                          "ga",
+                          "withdrawn"
+                        ]
+                      }
+                    },
                     "id": {
                       "type": "string"
                     },
@@ -10081,6 +10237,7 @@
                   },
                   "required": [
                     "opt_in_tags",
+                    "allowed_release_channels",
                     "id",
                     "name"
                   ]
@@ -10121,6 +10278,12 @@
           "postgres_version": {
             "type": "string"
           },
+          "postgres_engine": {
+            "type": "string"
+          },
+          "release_channel": {
+            "type": "string"
+          },
           "status": {
             "enum": [
               "ACTIVE_HEALTHY",
@@ -10157,6 +10320,8 @@
           "db_port",
           "ref",
           "postgres_version",
+          "postgres_engine",
+          "release_channel",
           "status",
           "db_host"
         ]
@@ -10285,11 +10450,21 @@
           "version": {
             "type": "string",
             "description": "Database version"
+          },
+          "postgres_engine": {
+            "type": "string",
+            "description": "Database engine"
+          },
+          "release_channel": {
+            "type": "string",
+            "description": "Release channel"
           }
         },
         "required": [
           "host",
-          "version"
+          "version",
+          "postgres_engine",
+          "release_channel"
         ]
       },
       "V1ProjectResponse": {
@@ -10327,11 +10502,21 @@
               "version": {
                 "type": "string",
                 "description": "Database version"
+              },
+              "postgres_engine": {
+                "type": "string",
+                "description": "Database engine"
+              },
+              "release_channel": {
+                "type": "string",
+                "description": "Release channel"
               }
             },
             "required": [
               "host",
-              "version"
+              "version",
+              "postgres_engine",
+              "release_channel"
             ]
           },
           "status": {
@@ -10376,6 +10561,23 @@
           "8xlarge",
           "12xlarge",
           "16xlarge"
+        ]
+      },
+      "ReleaseChannel": {
+        "type": "string",
+        "enum": [
+          "internal",
+          "alpha",
+          "beta",
+          "ga",
+          "withdrawn"
+        ]
+      },
+      "PostgresEngine": {
+        "type": "string",
+        "description": "Postgres engine version. If not provided, the latest version will be used.",
+        "enum": [
+          "15"
         ]
       },
       "V1CreateProjectBody": {
@@ -10452,6 +10654,23 @@
             "type": "string",
             "description": "Template URL used to create the project from the CLI.",
             "example": "https://github.com/supabase/supabase/tree/master/examples/slack-clone/nextjs-slack-clone"
+          },
+          "release_channel": {
+            "type": "string",
+            "enum": [
+              "internal",
+              "alpha",
+              "beta",
+              "ga",
+              "withdrawn"
+            ]
+          },
+          "postgres_engine": {
+            "type": "string",
+            "description": "Postgres engine version. If not provided, the latest version will be used.",
+            "enum": [
+              "15"
+            ]
           }
         },
         "required": [
@@ -11047,6 +11266,23 @@
               "8xlarge",
               "12xlarge",
               "16xlarge"
+            ]
+          },
+          "release_channel": {
+            "type": "string",
+            "enum": [
+              "internal",
+              "alpha",
+              "beta",
+              "ga",
+              "withdrawn"
+            ]
+          },
+          "postgres_engine": {
+            "type": "string",
+            "description": "Postgres engine version. If not provided, the latest version will be used.",
+            "enum": [
+              "15"
             ]
           },
           "branch_name": {
@@ -11895,11 +12131,22 @@
       "UpgradeDatabaseBody": {
         "type": "object",
         "properties": {
+          "release_channel": {
+            "type": "string",
+            "enum": [
+              "internal",
+              "alpha",
+              "beta",
+              "ga",
+              "withdrawn"
+            ]
+          },
           "target_version": {
-            "type": "number"
+            "type": "string"
           }
         },
         "required": [
+          "release_channel",
           "target_version"
         ]
       },
@@ -11918,7 +12165,21 @@
         "type": "object",
         "properties": {
           "postgres_version": {
-            "type": "number"
+            "type": "string",
+            "description": "Postgres engine version. If not provided, the latest version will be used.",
+            "enum": [
+              "15"
+            ]
+          },
+          "release_channel": {
+            "type": "string",
+            "enum": [
+              "internal",
+              "alpha",
+              "beta",
+              "ga",
+              "withdrawn"
+            ]
           },
           "app_version": {
             "type": "string"
@@ -11926,12 +12187,23 @@
         },
         "required": [
           "postgres_version",
+          "release_channel",
           "app_version"
         ]
       },
       "ProjectUpgradeEligibilityResponse": {
         "type": "object",
         "properties": {
+          "current_app_version_release_channel": {
+            "type": "string",
+            "enum": [
+              "internal",
+              "alpha",
+              "beta",
+              "ga",
+              "withdrawn"
+            ]
+          },
           "eligible": {
             "type": "boolean"
           },
@@ -11947,7 +12219,21 @@
               "type": "object",
               "properties": {
                 "postgres_version": {
-                  "type": "number"
+                  "type": "string",
+                  "description": "Postgres engine version. If not provided, the latest version will be used.",
+                  "enum": [
+                    "15"
+                  ]
+                },
+                "release_channel": {
+                  "type": "string",
+                  "enum": [
+                    "internal",
+                    "alpha",
+                    "beta",
+                    "ga",
+                    "withdrawn"
+                  ]
                 },
                 "app_version": {
                   "type": "string"
@@ -11955,6 +12241,7 @@
               },
               "required": [
                 "postgres_version",
+                "release_channel",
                 "app_version"
               ]
             }
@@ -11982,6 +12269,7 @@
           }
         },
         "required": [
+          "current_app_version_release_channel",
           "eligible",
           "current_app_version",
           "latest_app_version",
@@ -12302,10 +12590,10 @@
       "PostgresConfigResponse": {
         "type": "object",
         "properties": {
-          "statement_timeout": {
+          "effective_cache_size": {
             "type": "string"
           },
-          "effective_cache_size": {
+          "logical_decoding_work_mem": {
             "type": "string"
           },
           "maintenance_work_mem": {
@@ -12336,6 +12624,9 @@
             "minimum": 0,
             "maximum": 1024
           },
+          "max_replication_slots": {
+            "type": "integer"
+          },
           "max_slot_wal_keep_size": {
             "type": "string"
           },
@@ -12348,6 +12639,9 @@
           "max_wal_size": {
             "type": "string"
           },
+          "max_wal_senders": {
+            "type": "integer"
+          },
           "max_worker_processes": {
             "type": "integer",
             "minimum": 0,
@@ -12356,7 +12650,13 @@
           "shared_buffers": {
             "type": "string"
           },
+          "statement_timeout": {
+            "type": "string"
+          },
           "wal_keep_size": {
+            "type": "string"
+          },
+          "wal_sender_timeout": {
             "type": "string"
           },
           "work_mem": {
@@ -12375,10 +12675,10 @@
       "UpdatePostgresConfigBody": {
         "type": "object",
         "properties": {
-          "statement_timeout": {
+          "effective_cache_size": {
             "type": "string"
           },
-          "effective_cache_size": {
+          "logical_decoding_work_mem": {
             "type": "string"
           },
           "maintenance_work_mem": {
@@ -12409,6 +12709,9 @@
             "minimum": 0,
             "maximum": 1024
           },
+          "max_replication_slots": {
+            "type": "integer"
+          },
           "max_slot_wal_keep_size": {
             "type": "string"
           },
@@ -12421,6 +12724,9 @@
           "max_wal_size": {
             "type": "string"
           },
+          "max_wal_senders": {
+            "type": "integer"
+          },
           "max_worker_processes": {
             "type": "integer",
             "minimum": 0,
@@ -12429,7 +12735,13 @@
           "shared_buffers": {
             "type": "string"
           },
+          "statement_timeout": {
+            "type": "string"
+          },
           "wal_keep_size": {
+            "type": "string"
+          },
+          "wal_sender_timeout": {
             "type": "string"
           },
           "work_mem": {
@@ -15327,6 +15639,19 @@
               ]
             }
           },
+          "allowed_release_channels": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "internal",
+                "alpha",
+                "beta",
+                "ga",
+                "withdrawn"
+              ]
+            }
+          },
           "id": {
             "type": "string"
           },
@@ -15336,6 +15661,7 @@
         },
         "required": [
           "opt_in_tags",
+          "allowed_release_channels",
           "id",
           "name"
         ]
